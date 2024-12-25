@@ -7,12 +7,15 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 {% if request.session.admin_id %}
-                    <li class="nav-item">
-                        <a href="/account" class="nav-link">Account</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
-                    </li>
+                <li class="nav-item">
+                    <a href="/data" class="nav-link">Data</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/account" class="nav-link">Account</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#logoutModal">Logout</a>
+                </li>
                 {% endif %}
             </ul>
         </div>
