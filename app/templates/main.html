@@ -1,20 +1,25 @@
 {% extends 'base.html' %}
 {% block title %}MASJ{% endblock %}
 {% block content %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">MASJ</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                </ul>
-            </div>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="#">MASJ</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                {% if request.session.admin_id %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                    </li>
+                {% endif %}
+            </ul>
         </div>
-    </nav>
-    <div class="container text-center mt-5">
-        <h1>Welcome to MASJ</h1>
-        <p class="lead mt-3">Your one-stop solution for managing everything.</p>
     </div>
+</nav>
+<div class="container text-center mt-5">
+    <h1>Welcome to MASJ</h1>
+    <p class="lead mt-3">Your one-stop solution for managing everything.</p>
+</div>
 {% endblock %}

@@ -1,6 +1,17 @@
 {% extends 'base.html' %}
 {% block title %}Login{% endblock %}
 {% block content %}
+<div class="container mt-4">
+{% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
 <div class="row justify-content-center m-0 mt-5">
     <div class="col-md-6">
         <div class="card shadow">
@@ -20,5 +31,6 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 {% endblock %}
