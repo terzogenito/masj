@@ -8,6 +8,10 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
 ]
 
+def custom_403_view(request, exception):
+    return render(request, '403.html', status=403)
+handler403 = 'masj.urls.custom_403_view'
+
 def custom_404_view(request, exception):
     return render(request, '404.html', status=404)
 handler404 = 'masj.urls.custom_404_view'

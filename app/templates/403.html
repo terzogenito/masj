@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
-{% block title %}Page Not Found{% endblock %}
+{% block title %}Forbidden{% endblock %}
 {% block content %}
     <div class="container text-center mt-5">
-        <h1 class="display-1 text-danger">404</h1>
-        <p class="lead">Oops! Page Not Found.</p>
+        <h1 class="display-1 text-danger">403</h1>
+        <p class="lead">Oops! Forbidden.</p>
         <a href="{% url 'main' %}" class="btn btn-primary mt-3">Go Back Home</a>
     </div>
 {% endblock %}
