@@ -1,7 +1,7 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.hashers import check_password
+from django.db import connection
 from django.contrib import messages
+from django.contrib.auth.hashers import check_password, make_password
+from django.shortcuts import render, redirect
 from app.models import Admin
 
 def handle_login(request):
@@ -42,4 +42,23 @@ def logout_view(request):
     return redirect('main')
 
 def account_view(request):
-    return render(request, 'account.html')
+    if not request.session.get('admin_id'):
+        return redirect('main')
+    columns = [field.name for field in Admin._meta.fields if field.name != 'password']
+    rows = Admin.objects.all()
+    context = {
+        'columns': columns,
+        'rows': rows,
+    }
+    return render(request, 'account.html', context)
+
+def account_add_view(request):
+    if request.method == 'POST':
+        try:
+            admin_data = {key: value for key, value in request.POST.items() if key != 'csrfmiddlewaretoken'}
+            admin_data['password'] = make_password(admin_data['password'])
+            Admin.objects.create(**admin_data)
+            messages.success(request, 'Admin added successfully!')
+        except Exception as e:
+            messages.error(request, f'Error adding admin: {e}')
+    return redirect('account')

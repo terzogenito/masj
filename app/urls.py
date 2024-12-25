@@ -7,6 +7,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('account/', views.account_view, name='account'),
+    path('account_add/', views.account_add_view, name='account_add'),
 ]
 
 def custom_403_view(request, exception):
