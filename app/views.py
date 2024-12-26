@@ -92,8 +92,10 @@ def data_view(request):
     if not request.session.get('admin_id'):
         return redirect('main')
     table_names = get_all_tables()
-    system_tables = [
+    default_tables = [
         'app_admin',
+    ]
+    system_tables = [
         'auth_group',
         'auth_group_permissions',
         'auth_permission',
@@ -105,11 +107,12 @@ def data_view(request):
         'django_migrations',
         'django_session',
     ]
+    merge_tables = default_tables + system_tables
     if request.GET.get('system') == 'show':
-        empty_tables = get_non_empty_excluded_tables(system_tables)
+        empty_tables = get_non_empty_excluded_tables(merge_tables)
         table_names = [table for table in table_names if table not in empty_tables]
     else:
-        table_names = [table for table in table_names if table not in system_tables]
+        table_names = [table for table in table_names if table not in merge_tables]
     return render(request, 'data.html', {'tables': table_names})
 
 def table_add(request):
@@ -130,7 +133,8 @@ def table_import(request):
         csv_file = request.FILES.get('csvFile')
         table_name = request.POST.get('tableName').strip()
         if not csv_file.name.endswith('.csv'):
-            return render(request, 'data.html', {'error': 'Only CSV files are allowed.'})
+            messages.error(request, 'Only CSV files are allowed.')
+            return render(request, 'data.html')
         if not table_name:
             table_name = os.path.splitext(csv_file.name)[0]
         try:
@@ -145,7 +149,7 @@ def table_import(request):
             return HttpResponseRedirect(reverse('data_view'))
         except Exception as e:
             messages.error(request, str(e))
-            return render(request, 'data.html', {'error': str(e)})
+            return render(request, 'data.html')
     return HttpResponseRedirect(reverse('data_view'))
 
 def table_drop(request):
@@ -157,7 +161,8 @@ def table_drop(request):
             return HttpResponseRedirect(reverse('data_view'))
         except Exception as e:
             tables = get_all_tables()
-            return render(request, 'data.html', {'error': str(e), 'tables': tables})
+            messages.error(request, str(e))
+            return render(request, 'data.html', {'tables': tables})
     else:
         return HttpResponseRedirect(reverse('data_view'))
 
@@ -206,8 +211,8 @@ def add_column(request, table_name):
             return HttpResponseRedirect(reverse('table', args=[table_name]))
         except Exception as e:
             columns, rows = get_table_data(table_name)
+            messages.error(request, str(e))
             return render(request, 'table.html', {
-                'error': str(e),
                 'table_name': table_name,
                 'columns': columns,
                 'rows': rows,
