@@ -1,3 +1,5 @@
+import csv
+import os
 from django.db import connection
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password, make_password
@@ -173,3 +175,26 @@ def add_column(request, table_name):
                 'columns': columns,
                 'rows': rows,
             })
+
+def table_import(request):
+    if request.method == 'POST':
+        csv_file = request.FILES.get('csvFile')
+        table_name = request.POST.get('tableName').strip()
+        if not csv_file.name.endswith('.csv'):
+            return render(request, 'data.html', {'error': 'Only CSV files are allowed.'})
+        if not table_name:
+            table_name = os.path.splitext(csv_file.name)[0]
+        try:
+            with connection.cursor() as cursor:
+                data = csv.reader(csv_file.read().decode('utf-8').splitlines())
+                headers = next(data)
+                columns = ', '.join([f"{header} TEXT" for header in headers])
+                cursor.execute(f"CREATE TABLE {table_name} ({columns})")
+                for row in data:
+                    placeholders = ', '.join(['%s'] * len(row))
+                    cursor.execute(f"INSERT INTO {table_name} VALUES ({placeholders})", row)
+            return HttpResponseRedirect(reverse('data_view'))
+        except Exception as e:
+            messages.error(request, str(e))
+            return render(request, 'data.html', {'error': str(e)})
+    return HttpResponseRedirect(reverse('data_view'))
