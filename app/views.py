@@ -3,6 +3,7 @@ import os
 from django.db import connection
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password, make_password
+from django.core.paginator import Paginator
 from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse
 from django.shortcuts import render, redirect
@@ -124,6 +125,29 @@ def table_add(request):
             return HttpResponseRedirect(reverse('data_view'))
     return HttpResponseRedirect(reverse('data_view'))
 
+def table_import(request):
+    if request.method == 'POST':
+        csv_file = request.FILES.get('csvFile')
+        table_name = request.POST.get('tableName').strip()
+        if not csv_file.name.endswith('.csv'):
+            return render(request, 'data.html', {'error': 'Only CSV files are allowed.'})
+        if not table_name:
+            table_name = os.path.splitext(csv_file.name)[0]
+        try:
+            with connection.cursor() as cursor:
+                data = csv.reader(csv_file.read().decode('utf-8').splitlines())
+                headers = next(data)
+                columns = ', '.join([f"{header} TEXT" for header in headers])
+                cursor.execute(f"CREATE TABLE {table_name} ({columns})")
+                for row in data:
+                    placeholders = ', '.join(['%s'] * len(row))
+                    cursor.execute(f"INSERT INTO {table_name} VALUES ({placeholders})", row)
+            return HttpResponseRedirect(reverse('data_view'))
+        except Exception as e:
+            messages.error(request, str(e))
+            return render(request, 'data.html', {'error': str(e)})
+    return HttpResponseRedirect(reverse('data_view'))
+
 def table_drop(request):
     if request.method == 'POST':
         table_name = request.POST.get('tableName')
@@ -145,10 +169,23 @@ def table(request, table_name):
             columns = [col[0] for col in cursor.description]
     except Exception as e:
         raise Http404(f"Error accessing table: {e}")
+    paginator = Paginator(rows, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    current_page = page_obj.number
+    total_pages = paginator.num_pages
+    max_links = 10
+    start_page = max(current_page - max_links // 2, 1)
+    end_page = min(start_page + max_links - 1, total_pages)
+    if end_page - start_page + 1 < max_links:
+        start_page = max(end_page - max_links + 1, 1)
+    page_range = range(start_page, end_page + 1)
     return render(request, 'table.html', {
         'table_name': table_name,
         'columns': columns,
-        'rows': rows
+        'rows': page_obj,
+        'page_obj': page_obj,
+        'page_range': page_range,
     })
 
 def get_table_data(table_name):
@@ -175,26 +212,3 @@ def add_column(request, table_name):
                 'columns': columns,
                 'rows': rows,
             })
-
-def table_import(request):
-    if request.method == 'POST':
-        csv_file = request.FILES.get('csvFile')
-        table_name = request.POST.get('tableName').strip()
-        if not csv_file.name.endswith('.csv'):
-            return render(request, 'data.html', {'error': 'Only CSV files are allowed.'})
-        if not table_name:
-            table_name = os.path.splitext(csv_file.name)[0]
-        try:
-            with connection.cursor() as cursor:
-                data = csv.reader(csv_file.read().decode('utf-8').splitlines())
-                headers = next(data)
-                columns = ', '.join([f"{header} TEXT" for header in headers])
-                cursor.execute(f"CREATE TABLE {table_name} ({columns})")
-                for row in data:
-                    placeholders = ', '.join(['%s'] * len(row))
-                    cursor.execute(f"INSERT INTO {table_name} VALUES ({placeholders})", row)
-            return HttpResponseRedirect(reverse('data_view'))
-        except Exception as e:
-            messages.error(request, str(e))
-            return render(request, 'data.html', {'error': str(e)})
-    return HttpResponseRedirect(reverse('data_view'))
