@@ -18,12 +18,12 @@ urlpatterns = [
 
 def custom_403_view(request, exception):
     return render(request, '403.html', status=403)
-handler403 = 'masj.urls.custom_403_view'
+handler403 = 'app.urls.custom_403_view'
 
 def custom_404_view(request, exception):
     return render(request, '404.html', status=404)
-handler404 = 'masj.urls.custom_404_view'
+handler404 = 'app.urls.custom_404_view'
 
-def custom_500_view(request, exception):
+def custom_500_view(request):
     return render(request, '500.html', status=500)
-handler500 = 'masj.urls.custom_500_view'
+handler500 = 'app.urls.custom_500_view'
