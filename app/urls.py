@@ -7,9 +7,12 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('account/', views.account_view, name='account'),
-    path('account_add/', views.account_add_view, name='account_add'),
+    path('account-add/', views.account_add_view, name='account_add'),
     path('data/', views.data_view, name='data_view'),
+    path('table-add/', views.table_add, name='table_add'),
+    path('table-drop/', views.table_drop, name='table_drop'),
     path('table/<str:table_name>/', views.table, name='table'),
+    path('table/<str:table_name>/add-column/', views.add_column, name='add_column'),
 ]
 
 def custom_403_view(request, exception):

@@ -6,6 +6,9 @@
     {% include 'notice.html' %}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Data Tables</h2>
+        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTableModal">
+            Add Table
+        </button>
     </div>
     <table class="table table-bordered">
         <thead>
@@ -19,9 +22,69 @@
                 <td>
                     <a href="{% url 'table' table %}">{{ table }}</a>
                 </td>
+                <td>
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#dropTableModal" data-table-name="{{ table }}">Drop</button>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+<div class="modal fade" id="addTableModal" tabindex="-1" aria-labelledby="addTableModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'table_add' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addTableModalLabel">Add New Table</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="tableName" class="form-label">Table Name</label>
+                        <input type="text" id="tableName" name="tableName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="columns" class="form-label">Columns (optional, comma-separated)</label>
+                        <input type="text" id="columns" name="columns" class="form-control" placeholder="Leave empty for default 'id INT PRIMARY KEY'">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Table</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="dropTableModal" tabindex="-1" aria-labelledby="dropTableModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'table_drop' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dropTableModalLabel">Drop Table</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to drop the table <strong id="modalTableName"></strong>?</p>
+                    <input type="hidden" name="tableName" id="modalTableInput">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Drop Table</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelectorAll('[data-bs-target="#dropTableModal"]').forEach(button => {
+        button.addEventListener('click', event => {
+            const tableName = button.getAttribute('data-table-name');
+            document.getElementById('modalTableName').textContent = tableName;
+            document.getElementById('modalTableInput').value = tableName;
+        });
+    });
+</script>
 {% endblock %}
