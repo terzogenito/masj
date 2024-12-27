@@ -10,18 +10,12 @@
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTableModal">
                 Add
             </button>
-            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#importTableModal">
+            <button type="button" class="btn btn-success btn-sm me-2" data-bs-toggle="modal" data-bs-target="#importTableModal">
                 Import
             </button>
         </div>
     </div>
     <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Table Name</th>
-                <th></th>
-            </tr>
-        </thead>
         <tbody>
             {% for table in tables %}
             <tr>
@@ -30,6 +24,7 @@
                 </td>
                 <td style="white-space: nowrap; width: 1%;">
                     <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#dropTableModal" data-table-name="{{ table }}">Drop</button>
+                    <a href="{% url 'table_export' table %}" class="btn btn-primary btn-sm">Export</a>
                 </td>
             </tr>
             {% endfor %}

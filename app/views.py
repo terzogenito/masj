@@ -1,13 +1,13 @@
-import csv
 import os
-from django.db import connection
+import csv
+from app.models import Admin
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.paginator import Paginator
-from django.http import Http404, HttpResponseRedirect
-from django.urls import reverse
+from django.db import connection
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
-from app.models import Admin
+from django.urls import reverse
 
 def handle_login(request):
     if request.method == 'POST':
@@ -141,16 +141,44 @@ def table_import(request):
             with connection.cursor() as cursor:
                 data = csv.reader(csv_file.read().decode('utf-8').splitlines())
                 headers = next(data)
+                if 'id' not in headers:
+                    headers.insert(0, 'id')
+                    id_column_added = True
+                else:
+                    id_column_added = False
                 columns = ', '.join([f"{header} TEXT" for header in headers])
+                if id_column_added:
+                    columns = 'id SERIAL PRIMARY KEY, ' + ', '.join([f"{header} TEXT" for header in headers[1:]])
                 cursor.execute(f"CREATE TABLE {table_name} ({columns})")
                 for row in data:
-                    placeholders = ', '.join(['%s'] * len(row))
+                    if id_column_added:
+                        placeholders = 'DEFAULT, ' + ', '.join(['%s'] * (len(row)))
+                    else:
+                        placeholders = ', '.join(['%s'] * len(row))
                     cursor.execute(f"INSERT INTO {table_name} VALUES ({placeholders})", row)
             return HttpResponseRedirect(reverse('data_view'))
         except Exception as e:
             messages.error(request, str(e))
             return render(request, 'data.html')
     return HttpResponseRedirect(reverse('data_view'))
+
+def table_export(request, table):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM {table}")
+            rows = cursor.fetchall()
+            cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table}'")
+            columns = [row[0] for row in cursor.fetchall()]
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{table}_exported.csv"'
+        writer = csv.writer(response)
+        writer.writerow(columns)
+        for row in rows:
+            writer.writerow(row)
+        return response
+    except Exception as e:
+        messages.error(request, str(e))
+        return render(request, 'data.html')
 
 def table_drop(request):
     if request.method == 'POST':

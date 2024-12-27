@@ -10,10 +10,11 @@ urlpatterns = [
     path('account-add/', views.account_add_view, name='account_add'),
     path('data/', views.data_view, name='data_view'),
     path('table-add/', views.table_add, name='table_add'),
+    path('table-import/', views.table_import, name='table_import'),
+    path('export/<str:table>/', views.table_export, name='table_export'),
     path('table-drop/', views.table_drop, name='table_drop'),
     path('table/<str:table_name>/', views.table, name='table'),
     path('table/<str:table_name>/add-column/', views.add_column, name='add_column'),
-    path('table-import/', views.table_import, name='table_import'),
 ]
 
 def custom_403_view(request, exception):
