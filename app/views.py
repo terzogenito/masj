@@ -88,10 +88,43 @@ def get_all_tables():
         tables = connection.introspection.get_table_list(cursor)
     return [table.name for table in tables]
 
+def get_table_info(table_name):
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+            row_count = cursor.fetchone()[0]
+        except Exception:
+            row_count = 'N/A'
+        try:
+            db_engine = connection.settings_dict['ENGINE']
+            if 'sqlite' in db_engine:
+                cursor.execute(f"PRAGMA table_info({table_name})")
+                col_count = len(cursor.fetchall())
+            elif 'postgresql' in db_engine:
+                cursor.execute(f"""
+                    SELECT COUNT(*) 
+                    FROM information_schema.columns 
+                    WHERE table_name = %s
+                """, [table_name])
+                col_count = cursor.fetchone()[0]
+            elif 'mysql' in db_engine:
+                cursor.execute(f"""
+                    SELECT COUNT(*) 
+                    FROM information_schema.columns 
+                    WHERE table_name = %s 
+                      AND table_schema = DATABASE()
+                """, [table_name])
+                col_count = cursor.fetchone()[0]
+            else:
+                col_count = 'N/A'
+        except Exception:
+            col_count = 'N/A'
+    return row_count, col_count
+
 def data_view(request):
     if not request.session.get('admin_id'):
         return redirect('main')
-    table_names = get_all_tables()
+    tables = get_all_tables()
     default_tables = [
         'app_admin',
     ]
@@ -110,10 +143,18 @@ def data_view(request):
     merge_tables = default_tables + system_tables
     if request.GET.get('system') == 'show':
         empty_tables = get_non_empty_excluded_tables(merge_tables)
-        table_names = [table for table in table_names if table not in empty_tables]
+        tables = [table for table in tables if table not in empty_tables]
     else:
-        table_names = [table for table in table_names if table not in merge_tables]
-    return render(request, 'data.html', {'tables': table_names})
+        tables = [table for table in tables if table not in merge_tables]
+    table_data = []
+    for table in tables:
+        row_count, col_count = get_table_info(table)
+        table_data.append({
+            'name': table,
+            'row_count': row_count,
+            'col_count': col_count,
+        })
+    return render(request, 'data.html', {'tables': table_data})
 
 def table_add(request):
     if request.method == 'POST':
