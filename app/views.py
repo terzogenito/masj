@@ -70,6 +70,11 @@ def account_add_view(request):
             messages.error(request, f'Error adding admin: {e}')
     return redirect('account')
 
+def get_all_tables():
+    with connection.cursor() as cursor:
+        tables = connection.introspection.get_table_list(cursor)
+    return [table.name for table in tables]
+
 def get_non_empty_excluded_tables(excluded_tables):
     empty_tables = []
     with connection.cursor() as cursor:
@@ -82,11 +87,6 @@ def get_non_empty_excluded_tables(excluded_tables):
             except Exception as e:
                 print(f"Error checking table {table}: {e}")
     return empty_tables
-
-def get_all_tables():
-    with connection.cursor() as cursor:
-        tables = connection.introspection.get_table_list(cursor)
-    return [table.name for table in tables]
 
 def get_table_info(table_name):
     with connection.cursor() as cursor:
@@ -135,7 +135,7 @@ def data_view(request):
         'auth_user',
         'auth_user_groups',
         'auth_user_user_permissions',
-        'django_admin_log',
+        # 'django_admin_log',
         'django_content_type',
         'django_migrations',
         'django_session',
@@ -317,3 +317,31 @@ def add_column(request, table_name):
                 'columns': columns,
                 'rows': rows,
             })
+
+def get_table_fields(table_name):
+    with connection.cursor() as cursor:
+        db_engine = connection.settings_dict['ENGINE']
+        if 'sqlite' in db_engine:
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            fields = [{'name': row[1], 'type': row[2]} for row in cursor.fetchall()]
+        elif 'postgresql' in db_engine:
+            cursor.execute("""
+                SELECT column_name, data_type
+                FROM information_schema.columns
+                WHERE table_name = %s
+            """, [table_name])
+            fields = [{'name': row[0], 'type': row[1]} for row in cursor.fetchall()]
+        elif 'mysql' in db_engine:
+            cursor.execute("""
+                SELECT column_name, data_type
+                FROM information_schema.columns
+                WHERE table_name = %s
+            """, [table_name])
+            fields = [{'name': row[0], 'type': row[1]} for row in cursor.fetchall()]
+        else:
+            fields = []
+    return fields
+
+def field_view(request, table_name):
+    fields = get_table_fields(table_name)
+    return render(request, 'field.html', {'table_name': table_name, 'fields': fields})

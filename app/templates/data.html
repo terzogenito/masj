@@ -22,9 +22,9 @@
         <thead>
             <tr>
                 <th>Name</th>
-                <th>Rows</th>
-                <th>Cols</th>
-                <th>Actions</th>
+                <th class="text-center">Row</th>
+                <th class="text-center">Col</th>
+                <th class="text-center">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -33,8 +33,8 @@
                 <td class="cell-hovered" onclick="window.location.href='{% url 'table' table.name %}'" title="Open table rows">
                     {{ table.name }}
                 </td>
-                <td class="cell-hovered" onclick="window.location.href='{% url 'table' table.name %}'"title="Open table rows">{{ table.row_count }}</td>
-                <td class="cell-hovered">{{ table.col_count }}</td>
+                <td class="cell-hovered text-center" onclick="window.location.href='{% url 'table' table.name %}'" title="Open table rows">{{ table.row_count }}</td>
+                <td class="cell-hovered text-center" onclick="window.location.href='{% url 'table_fields' table.name %}'">{{ table.col_count }}</td>
                 <td style="white-space: nowrap; width: 1%;">
                     <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#dropTableModal" data-table-name="{{ table.name }}">Drop</button>
                     <a href="{% url 'table_export' table.name %}" class="btn btn-primary btn-sm">Export</a>

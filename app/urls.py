@@ -16,6 +16,7 @@ urlpatterns = [
     path('table-drop/', views.table_drop, name='table_drop'),
     path('table/<str:table_name>/', views.table, name='table'),
     path('table/<str:table_name>/add-column/', views.add_column, name='add_column'),
+    path('table/<str:table_name>/fields/', views.field_view, name='table_fields'),
 ]
 
 def custom_403_view(request, exception):
