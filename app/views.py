@@ -180,6 +180,37 @@ def table_export(request, table):
         messages.error(request, str(e))
         return render(request, 'data.html')
 
+def export_all(request):
+    response = HttpResponse(content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="database_export.sql"'
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
+        """)
+        tables = cursor.fetchall()
+    for table in tables:
+        table_name = table[0]
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = %s;", [table_name])
+            columns = cursor.fetchall()
+        create_table_query = f"CREATE TABLE {table_name} (\n"
+        for i, column in enumerate(columns):
+            column_name, data_type = column
+            create_table_query += f"    {column_name} {data_type},\n" if i < len(columns) - 1 else f"    {column_name} {data_type}\n"
+        create_table_query += ");\n\n"
+        response.write(create_table_query)
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM {table_name}")
+            rows = cursor.fetchall()
+            column_names = [col[0] for col in cursor.description]
+        for row in rows:
+            insert_query = f"INSERT INTO {table_name} ({', '.join(column_names)}) VALUES ({', '.join([repr(val) for val in row])});\n"
+            response.write(insert_query)
+        response.write("\n")
+    return response
+
 def table_drop(request):
     if request.method == 'POST':
         table_name = request.POST.get('tableName')

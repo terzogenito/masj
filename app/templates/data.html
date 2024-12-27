@@ -10,9 +10,12 @@
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTableModal">
                 Add
             </button>
-            <button type="button" class="btn btn-success btn-sm me-2" data-bs-toggle="modal" data-bs-target="#importTableModal">
+            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#importTableModal">
                 Import
             </button>
+            <a href="{% url 'export_all' %}" class="btn btn-info btn-sm me-2">
+                Backup
+            </a>
         </div>
     </div>
     <table class="table table-bordered">

@@ -11,6 +11,7 @@ urlpatterns = [
     path('data/', views.data_view, name='data_view'),
     path('table-add/', views.table_add, name='table_add'),
     path('table-import/', views.table_import, name='table_import'),
+    path('export_all/', views.export_all, name='export_all'),
     path('export/<str:table>/', views.table_export, name='table_export'),
     path('table-drop/', views.table_drop, name='table_drop'),
     path('table/<str:table_name>/', views.table, name='table'),
