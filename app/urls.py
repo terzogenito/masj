@@ -12,9 +12,10 @@ urlpatterns = [
     path('data-export/', views.export_all, name='export_all'),
     path('table-add/', views.table_add, name='table_add'),
     path('table-import/', views.table_import, name='table_import'),
-    path('table/<str:table_name>/', views.table, name='table'),
     path('table-export/<str:table_name>/', views.table_export, name='table_export'),
     path('table-drop/', views.table_drop, name='table_drop'),
+    path('table/<str:table_name>/', views.table, name='table'),
+    path('table-row/<str:table_name>/', views.table_row, name='table_row'),
     path('field/<str:table_name>/', views.field_view, name='field'),
     path('field-add/<str:table_name>/', views.field_add, name='field_add'),
 ]

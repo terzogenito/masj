@@ -94,6 +94,8 @@ def get_table_info(table_name):
         try:
             cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
             row_count = cursor.fetchone()[0]
+            cursor.execute("SELECT pg_size_pretty(pg_relation_size(%s))", [table_name])
+            size = cursor.fetchone()[0]
         except Exception:
             row_count = 'N/A'
         try:
@@ -120,7 +122,7 @@ def get_table_info(table_name):
                 col_count = 'N/A'
         except Exception:
             col_count = 'N/A'
-    return row_count, col_count
+    return row_count, col_count, size
 
 def data_view(request):
     if not request.session.get('admin_id'):
@@ -149,11 +151,12 @@ def data_view(request):
         tables = [table for table in tables if table not in merge_tables]
     table_data = []
     for table in tables:
-        row_count, col_count = get_table_info(table)
+        row_count, col_count, size = get_table_info(table)
         table_data.append({
             'name': table,
             'row_count': row_count,
             'col_count': col_count,
+            'size': size,
         })
     return render(request, 'data.html', {'tables': table_data})
 
@@ -162,7 +165,7 @@ def table_add(request):
         table_name = request.POST.get('tableName').strip()
         columns = request.POST.get('columns', '').strip()
         if not any(col.split()[0] == 'id' for col in columns.split(',') if col.strip()):
-            columns = f"id INT PRIMARY KEY, {columns}" if columns else "id INT PRIMARY KEY"
+            columns = f"id SERIAL PRIMARY KEY, {columns}" if columns else "id SERIAL PRIMARY KEY"
         formatted_columns = []
         for column in columns.split(','):
             column_name = column.split()[0]
@@ -213,28 +216,6 @@ def table_import(request):
             return render(request, 'data.html')
     return HttpResponseRedirect(reverse('data_view'))
 
-def table_export(request, table_name):
-    try:
-        file_name = request.GET.get('file_name', table_name)
-        if not file_name:
-            file_name = table_name
-        with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM {table_name}")
-            rows = cursor.fetchall()
-            cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'")
-            columns = [row[0] for row in cursor.fetchall()]
-        current_datetime = datetime.now().strftime('%Y%m%d%H%M%S')
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="{file_name}_{current_datetime}.csv"'
-        writer = csv.writer(response)
-        writer.writerow(columns)
-        for row in rows:
-            writer.writerow(row)
-        return response
-    except Exception as e:
-        messages.error(request, str(e))
-        return render(request, 'data.html')
-
 def export_all(request):
     current_datetime = datetime.now().strftime('%Y%m%d%H%M%S')
     response = HttpResponse(content_type='application/sql')
@@ -267,6 +248,28 @@ def export_all(request):
         response.write("\n")
     return response
 
+def table_export(request, table_name):
+    try:
+        file_name = request.GET.get('file_name', table_name)
+        if not file_name:
+            file_name = table_name
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT * FROM {table_name}")
+            rows = cursor.fetchall()
+            cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'")
+            columns = [row[0] for row in cursor.fetchall()]
+        current_datetime = datetime.now().strftime('%Y%m%d%H%M%S')
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="{file_name}_{current_datetime}.csv"'
+        writer = csv.writer(response)
+        writer.writerow(columns)
+        for row in rows:
+            writer.writerow(row)
+        return response
+    except Exception as e:
+        messages.error(request, str(e))
+        return render(request, 'data.html')
+
 def table_drop(request):
     if request.method == 'POST':
         table_name = request.POST.get('tableName')
@@ -288,6 +291,7 @@ def table(request, table_name):
             rows = cursor.fetchall()
             columns = [col[0] for col in cursor.description]
     except Exception as e:
+        messages.error(request, str(e))
         raise Http404(f"Error accessing table: {e}")
     paginator = Paginator(rows, 10)
     page_number = request.GET.get('page')
@@ -308,13 +312,40 @@ def table(request, table_name):
         'page_range': page_range,
     })
 
-def get_table_data(table_name):
-    with connection.cursor() as cursor:
-        cursor.execute(f"PRAGMA table_info({table_name})")
-        columns = [col[1] for col in cursor.fetchall()]
-        cursor.execute(f"SELECT * FROM {table_name}")
-        rows = cursor.fetchall()
-    return columns, rows
+def table_row(request, table_name):
+    if request.method == 'POST':
+        data = request.POST.dict()
+        data.pop('csrfmiddlewaretoken', None) 
+        columns = ', '.join(data.keys())
+        values_placeholders = ', '.join(['DEFAULT'] + [f"%s" for _ in data.values()])
+        try:
+            with connection.cursor() as cursor:
+                query = f"INSERT INTO {table_name} (id, {columns}) VALUES ({values_placeholders})"
+                cursor.execute(query, list(data.values()))
+            messages.success(request, f"New row added successfully to '{table_name}'.")
+        except Exception as e:
+            messages.error(request, f"Error adding row: {e}")
+        return redirect('table_row', table_name=table_name)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = %s", [table_name])
+            columns = [col[0] for col in cursor.fetchall()]
+            cursor.execute(f"SELECT * FROM {table_name}")
+            rows = cursor.fetchall()
+    except Exception as e:
+        messages.error(request, f"Error fetching data: {e}")
+        columns, rows = [], []
+    paginator = Paginator(rows, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    page_range = paginator.get_elided_page_range(page_number, on_each_side=1, on_ends=1)
+    return render(request, 'table.html', {
+        'table_name': table_name,
+        'columns': columns,
+        'rows': page_obj.object_list,
+        'page_obj': page_obj,
+        'page_range': page_range,
+    })
 
 def get_table_fields(table_name):
     with connection.cursor() as cursor:
@@ -352,7 +383,7 @@ def field_add(request, table_name):
             return HttpResponseRedirect(reverse('field_view', args=[table_name]))
         try:
             with connection.cursor() as cursor:
-                cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} TEXT")
+                cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} TEXT DEFAULT ''")
             messages.success(request, f"Column '{column_name}' added successfully.")
         except Exception as e:
             messages.error(request, f"Error adding column: {e}")

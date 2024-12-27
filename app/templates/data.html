@@ -18,6 +18,7 @@
                 <th>Name</th>
                 <th class="text-center">Row</th>
                 <th class="text-center">Col</th>
+                <th class="text-center">Size</th>
                 <th class="text-center">Action</th>
             </tr>
         </thead>
@@ -29,6 +30,7 @@
                 </td>
                 <td class="cell-hovered text-center" onclick="window.location.href='{% url 'table' table.name %}'" title="Open table rows">{{ table.row_count }}</td>
                 <td class="cell-hovered text-center" onclick="window.location.href='{% url 'field' table.name %}'">{{ table.col_count }}</td>
+                <td class="text-center">{{ table.size }}</td>
                 <td style="white-space: nowrap; width: 1%;">
                     <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#dropTableModal" data-table-name="{{ table.name }}">Drop</button>
                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal" data-table-name="{{ table.name }}">

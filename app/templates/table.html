@@ -6,6 +6,10 @@
     {% include 'notice.html' %}
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>{{ table_name|capfirst }} Data</h2>
+        <div>
+            <a href="{% url 'data_view' %}" class="btn btn-secondary btn-sm">Back</a>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addRowModal">Add</button>
+        </div>
     </div>
     <div id="top-scroll" style="overflow-x: auto; overflow-y: hidden;">
         <div style="width: max-content; height: 1px;"></div>
@@ -73,6 +77,33 @@
         </nav>
     </div>
     {% endif %}
+</div>
+<div class="modal fade" id="addRowModal" tabindex="-1" aria-labelledby="addRowModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRowModalLabel">Add New Row</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addRowForm" method="POST" action="{% url 'table_row' table_name=table_name %}">
+                    {% csrf_token %}
+                    {% for column in columns %}
+                        {% if column != 'id' %}
+                        <div class="mb-3">
+                            <label for="field-{{ column }}" class="form-label">{{ column|capfirst }}</label>
+                            <input type="text" class="form-control" id="field-{{ column }}" name="{{ column }}" placeholder="Enter {{ column }}">
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Row</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
     const topScroll = document.getElementById('top-scroll');
