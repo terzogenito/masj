@@ -159,14 +159,23 @@ def data_view(request):
 
 def table_add(request):
     if request.method == 'POST':
-        table_name = request.POST.get('tableName')
+        table_name = request.POST.get('tableName').strip()
         columns = request.POST.get('columns', '').strip()
-        if not columns:
-            columns = 'id INT PRIMARY KEY'
+        if not any(col.split()[0] == 'id' for col in columns.split(',') if col.strip()):
+            columns = f"id INT PRIMARY KEY, {columns}" if columns else "id INT PRIMARY KEY"
+        formatted_columns = []
+        for column in columns.split(','):
+            column_name = column.split()[0]
+            if column_name.lower() != 'id':
+                formatted_columns.append(f"{column_name} TEXT")
+            else:
+                formatted_columns.append(column)
+        columns = ", ".join(formatted_columns)
         try:
             with connection.cursor() as cursor:
                 cursor.execute(f"CREATE TABLE {table_name} ({columns})")
         except Exception as e:
+            messages.error(request, str(e))
             return HttpResponseRedirect(reverse('data_view'))
     return HttpResponseRedirect(reverse('data_view'))
 
@@ -313,7 +322,7 @@ def add_column(request, table_name):
         data_type = request.POST.get('dataType')
         try:
             with connection.cursor() as cursor:
-                cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {data_type}")
+                cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} TEXT")
             return HttpResponseRedirect(reverse('table', args=[table_name]))
         except Exception as e:
             columns, rows = get_table_data(table_name)

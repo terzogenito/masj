@@ -2,3 +2,24 @@
     cursor: pointer;
     background-color: #f0f0f0;
 }
+        .modal-header {
+            justify-content: center;
+        }
+        .form-label {
+            font-weight: bold;
+        }
+        .form-note {
+            font-size: 0.9rem;
+            color: gray;
+        }
+        .add-column-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .add-column-section input {
+            flex: 2;
+        }
+        .add-column-section select {
+            flex: 1;
+        }
