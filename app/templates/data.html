@@ -7,9 +7,9 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Data</h2>
         <div>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTableModal"title="Add table">Add</button>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importTableModal">Import</button>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#backupModal">Backup</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#backupModal">Backup</button>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTableModal"title="Add new table">New</button>
+            <button type="button" class="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#importTableModal">Import</button>
         </div>
     </div>
     <table class="table table-bordered">
@@ -28,7 +28,7 @@
                     {{ table.name }}
                 </td>
                 <td class="cell-hovered text-center" onclick="window.location.href='{% url 'table' table.name %}'" title="Open table rows">{{ table.row_count }}</td>
-                <td class="cell-hovered text-center" onclick="window.location.href='{% url 'table_fields' table.name %}'">{{ table.col_count }}</td>
+                <td class="cell-hovered text-center" onclick="window.location.href='{% url 'field' table.name %}'">{{ table.col_count }}</td>
                 <td style="white-space: nowrap; width: 1%;">
                     <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#dropTableModal" data-table-name="{{ table.name }}">Drop</button>
                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal" data-table-name="{{ table.name }}">
@@ -173,7 +173,7 @@
             var button = event.relatedTarget;
             var tableName = button.getAttribute('data-table-name');
             var form = document.getElementById('exportForm');
-            form.action = `/table_export/${tableName}/`;
+            form.action = `/table-export/${tableName}/`;
             document.getElementById('tableNameInput').value = tableName;
         });
         document.getElementById('addColumnButton').addEventListener('click', function () {

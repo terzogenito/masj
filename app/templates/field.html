@@ -33,7 +33,7 @@
 <div class="modal fade" id="addColumnModal" tabindex="-1" aria-labelledby="addColumnModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" action="{% url 'add_column' table_name %}">
+            <form method="post" action="{% url 'field_add' table_name %}">
                 {% csrf_token %}
                 <div class="modal-header">
                     <h5 class="modal-title" id="addColumnModalLabel">Add New Column</h5>
@@ -43,15 +43,6 @@
                     <div class="mb-3">
                         <label for="columnName" class="form-label">Column Name</label>
                         <input type="text" id="columnName" name="columnName" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="dataType" class="form-label">Data Type</label>
-                        <select id="dataType" name="dataType" class="form-select" required>
-                            <option value="TEXT">TEXT</option>
-                            <option value="VARCHAR(255)">VARCHAR(255)</option>
-                            <option value="INT">INT</option>
-                            <option value="DATE">DATE</option>
-                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">

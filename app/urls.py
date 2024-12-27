@@ -9,14 +9,14 @@ urlpatterns = [
     path('account/', views.account_view, name='account'),
     path('account-add/', views.account_add_view, name='account_add'),
     path('data/', views.data_view, name='data_view'),
+    path('data-export/', views.export_all, name='export_all'),
     path('table-add/', views.table_add, name='table_add'),
     path('table-import/', views.table_import, name='table_import'),
-    path('export_all/', views.export_all, name='export_all'),
-    path('table_export/<str:table>/', views.table_export, name='table_export'),
-    path('table-drop/', views.table_drop, name='table_drop'),
     path('table/<str:table_name>/', views.table, name='table'),
-    path('table/<str:table_name>/add-column/', views.add_column, name='add_column'),
-    path('table/<str:table_name>/fields/', views.field_view, name='table_fields'),
+    path('table-export/<str:table_name>/', views.table_export, name='table_export'),
+    path('table-drop/', views.table_drop, name='table_drop'),
+    path('field/<str:table_name>/', views.field_view, name='field'),
+    path('field-add/<str:table_name>/', views.field_add, name='field_add'),
 ]
 
 def custom_403_view(request, exception):

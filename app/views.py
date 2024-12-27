@@ -213,15 +213,15 @@ def table_import(request):
             return render(request, 'data.html')
     return HttpResponseRedirect(reverse('data_view'))
 
-def table_export(request, table):
+def table_export(request, table_name):
     try:
-        file_name = request.GET.get('file_name', table)
+        file_name = request.GET.get('file_name', table_name)
         if not file_name:
-            file_name = table
+            file_name = table_name
         with connection.cursor() as cursor:
-            cursor.execute(f"SELECT * FROM {table}")
+            cursor.execute(f"SELECT * FROM {table_name}")
             rows = cursor.fetchall()
-            cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table}'")
+            cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}'")
             columns = [row[0] for row in cursor.fetchall()]
         current_datetime = datetime.now().strftime('%Y%m%d%H%M%S')
         response = HttpResponse(content_type='text/csv')
@@ -316,23 +316,6 @@ def get_table_data(table_name):
         rows = cursor.fetchall()
     return columns, rows
 
-def add_column(request, table_name):
-    if request.method == 'POST':
-        column_name = request.POST.get('columnName')
-        data_type = request.POST.get('dataType')
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} TEXT")
-            return HttpResponseRedirect(reverse('table', args=[table_name]))
-        except Exception as e:
-            columns, rows = get_table_data(table_name)
-            messages.error(request, str(e))
-            return render(request, 'table.html', {
-                'table_name': table_name,
-                'columns': columns,
-                'rows': rows,
-            })
-
 def get_table_fields(table_name):
     with connection.cursor() as cursor:
         db_engine = connection.settings_dict['ENGINE']
@@ -360,3 +343,19 @@ def get_table_fields(table_name):
 def field_view(request, table_name):
     fields = get_table_fields(table_name)
     return render(request, 'field.html', {'table_name': table_name, 'fields': fields})
+
+def field_add(request, table_name):
+    if request.method == 'POST':
+        column_name = request.POST.get('columnName')
+        if not column_name:
+            messages.error(request, "Column name cannot be empty.")
+            return HttpResponseRedirect(reverse('field_view', args=[table_name]))
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} TEXT")
+            messages.success(request, f"Column '{column_name}' added successfully.")
+        except Exception as e:
+            messages.error(request, f"Error adding column: {e}")
+        return HttpResponseRedirect(reverse('field', args=[table_name]))
+    messages.error(request, "Invalid request method.")
+    return HttpResponseRedirect(reverse('field', args=[table_name]))
