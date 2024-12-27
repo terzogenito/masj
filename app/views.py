@@ -1,6 +1,7 @@
 import os
 import csv
 from app.models import Admin
+from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.paginator import Paginator
@@ -205,13 +206,17 @@ def table_import(request):
 
 def table_export(request, table):
     try:
+        file_name = request.GET.get('file_name', table)
+        if not file_name:
+            file_name = table
         with connection.cursor() as cursor:
             cursor.execute(f"SELECT * FROM {table}")
             rows = cursor.fetchall()
             cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table}'")
             columns = [row[0] for row in cursor.fetchall()]
+        current_datetime = datetime.now().strftime('%Y%m%d%H%M%S')
         response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="{table}_exported.csv"'
+        response['Content-Disposition'] = f'attachment; filename="{file_name}_{current_datetime}.csv"'
         writer = csv.writer(response)
         writer.writerow(columns)
         for row in rows:
@@ -222,8 +227,9 @@ def table_export(request, table):
         return render(request, 'data.html')
 
 def export_all(request):
-    response = HttpResponse(content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename="database_export.sql"'
+    current_datetime = datetime.now().strftime('%Y%m%d%H%M%S')
+    response = HttpResponse(content_type='application/sql')
+    response['Content-Disposition'] = f'attachment; filename="backup_{current_datetime}.sql"'
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT table_name 
