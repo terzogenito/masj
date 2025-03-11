@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Login{% endblock %}
+{% block title %}Register{% endblock %}
 {% block content %}
 <div class="container mt-4">
     {% include 'notice.html' %}
@@ -7,7 +7,7 @@
         <div class="col-md-6">
             <div class="card shadow">
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" action="{% url 'register' %}">
                         {% csrf_token %}
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
@@ -17,11 +17,14 @@
                             <label for="password" class="form-label">Password</label>
                             <input type="password" id="password" name="password" class="form-control" placeholder="Enter password" required>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Login</button>
+                        <div class="mb-3">
+                            <label for="password2" class="form-label">Confirm Password</label>
+                            <input type="password" id="password2" name="password2" class="form-control" placeholder="Confirm password" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">Register</button>
                     </form>
                     <div class="text-center mt-3">
-                        <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
-                        <p>Forgot your password? <a href="{% url 'password_reset' %}">Reset Password</a></p>
+                        <p>Already have an account? <a href="{% url 'login' %}">Back to Login</a></p>
                     </div>
                 </div>
             </div>

@@ -7,9 +7,9 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Data</h2>
         <div>
-            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#backupModal">Backup</button>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTableModal"title="Add new table">New</button>
-            <button type="button" class="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#importTableModal">Import</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#backupModal" title="Export to backup all data">Backup</button>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTableModal"title="Add/create new table">New</button>
+            <button type="button" class="btn btn-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#importTableModal" title="Import table from a file">Import</button>
         </div>
     </div>
     <table class="table table-bordered">
@@ -32,10 +32,8 @@
                 <td class="cell-hovered text-center" onclick="window.location.href='{% url 'field' table.name %}'">{{ table.col_count }}</td>
                 <td class="text-center">{{ table.size }}</td>
                 <td style="white-space: nowrap; width: 1%;">
-                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#dropTableModal" data-table-name="{{ table.name }}">Drop</button>
-                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal" data-table-name="{{ table.name }}">
-                        Export
-                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#dropTableModal" data-table-name="{{ table.name }}" title="Delete table">Drop</button>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal" data-table-name="{{ table.name }}" title="Export table to a file">Export</button>
                 </td>
             </tr>
             {% endfor %}
@@ -150,7 +148,7 @@
                 <form id="exportForm" method="get" action="">
                     <input type="hidden" name="table_name" id="tableNameInput" value="">
                     <div class="mb-3">
-                        <label for="exportFileName" class="form-label">Export File Name (optional)</label>
+                        <label for="exportFileName" class="form-label">CSV File Name (optional)</label>
                         <input type="text" class="form-control" id="exportFileName" name="file_name" placeholder="Leave empty to use table name" />
                     </div>
                 </form>

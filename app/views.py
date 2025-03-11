@@ -3,6 +3,7 @@ import csv
 from app.models import Admin
 from datetime import datetime
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.paginator import Paginator
 from django.db import connection
@@ -46,6 +47,23 @@ def logout_view(request):
     request.session.flush()
     messages.success(request, 'You have been logged out.')
     return redirect('main')
+
+def register_view(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+        password2 = request.POST["password2"]
+        if password != password2:
+            messages.error(request, "Passwords do not match.")
+            return redirect("register")
+        if Admin.objects.filter(username=username).exists():
+            messages.error(request, "Username already taken.")
+            return redirect("register")
+        user = Admin.objects.create(username=username, password=make_password(password))
+        user.save()
+        messages.success(request, "Registration successful!")
+        return redirect("login")
+    return render(request, "register.html")
 
 def account_view(request):
     if not request.session.get('admin_id'):
