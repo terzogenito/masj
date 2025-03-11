@@ -1,3 +1,4 @@
 django
 psycopg
 whitenoise
+python-dotenv
